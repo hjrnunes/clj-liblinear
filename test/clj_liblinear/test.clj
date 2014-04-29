@@ -4,16 +4,17 @@
   (:import java.util.Random))
 
 
-(let [train-data (concat
-                  (repeatedly 300 #(hash-map :class 0 :f {:x (rand), :y (rand)}))
-                  (repeatedly 300 #(hash-map :class 1 :f {:x (- (rand)), :y (- (rand))})))
-      model (train
-             (map :f train-data)
-             (map :class train-data)
-             :algorithm :l2l2)]
-  
-  [(predict model {:x (rand) :y (rand)})
-   (predict model {:x (- (rand)) :y (- (rand))})])
+(comment
+  (let [train-data (concat
+                    (repeatedly 300 #(hash-map :class 0 :f {:x (rand), :y (rand)}))
+                    (repeatedly 300 #(hash-map :class 1 :f {:x (- (rand)), :y (- (rand))})))
+        model (train
+               (map :f train-data)
+               (map :class train-data)
+               :algorithm :l2l2)]
+           
+    [(predict model {:x (rand) :y (rand)})
+     (predict model {:x (- (rand)) :y (- (rand))})]))
 ;;=> [0 1]
 
 
@@ -55,7 +56,51 @@ The intercept is specified in feature name :intercept."
                      :class observed-class})))))
 
 
-(deftest regression
+(defn almost-equal-numbers
+  "Given some numbers, check if they are equal up to small relative error."
+  [& xs]
+  (or (every? zero? xs)
+      (let [x0 (first xs)]
+        (and (not (zero? x0)))
+        (let [allowed-error (* (Math/abs x0)
+                               0.000001)]
+          (every? (fn [x] (let [err (- x x0)]
+                           (< (- allowed-error)
+                              err
+                              allowed-error)))
+                  (rest xs))))))
+
+(deftest almost-equal-numbers-test
+  (is (almost-equal-numbers 1
+                            (+ 1 0.0000001)))
+  (is (not (almost-equal-numbers 0
+                                 0.0000001))))
+
+(defn almost-equal-maps
+  "Given a sequence of key-value maps whose values are numbers, check if they are all equal up to small relative erros of their values (relative wrt the values of the first map)."
+  [& ms]
+  (and (apply = (map #(apply hash-set (keys %))
+                     ms))
+       (every? (fn [k]
+                 (apply almost-equal-numbers (map #(% k) ms)))
+               (keys (first ms)))))
+
+(deftest almost-equal-maps-test
+  (is (almost-equal-maps {"abc" 1}
+                         {"abc" (+ 1 0.0000001)}
+                         {"abc" (- 1 0.0000001)}))
+  (is (almost-equal-maps {"abc" -1}
+                         {"abc" (+ -1 0.0000001)}
+                         {"abc" (- -1 0.0000001)}))
+  (is (not (almost-equal-maps {"abc" 1}
+                              {"abc" (+ 1 0.0000001)}
+                              {"abc" 1 "def" 1})))
+  (is (not (almost-equal-maps {"abc" 1}
+                              {"abc" (+ 1 0.0001)})))
+  (is (almost-equal-maps {:intercept 0.7529187765874954, :y 0.8761760796248441, :x -1.9341912291944392}
+                         {:intercept 0.7529187765874954, :y 0.8761760796248441, :x -1.9341912291944392})))
+
+(deftest regression-test
   (let [ ;; Prepare training data
         train-data (generate-logistic-observations 400
                                                    {:x -2
@@ -73,15 +118,15 @@ The intercept is specified in feature name :intercept."
                :bias true)]
     ;; Check the model coefficients for various training scenations:
     (are [training-parameters expected-coefficients]
-      (= (do
-           ;; Reset liblinear's PRNG
-           (reset-random)
-           ;; Train model and get coefficients
-           (get-coefficients (apply train
-                                    (map :f train-data)
-                                    (map :class train-data)
-                                    training-parameters)))
-         expected-coefficients)
+      (almost-equal-maps (do
+                           ;; Reset liblinear's PRNG
+                           (reset-random)
+                           ;; Train model and get coefficients
+                           (get-coefficients (apply train
+                                                    (map :f train-data)
+                                                    (map :class train-data)
+                                                    training-parameters)))
+                         expected-coefficients)
       ;; Test various combinations of algorithm (taken from the supported
       ;; algotithms), c (taken from #{2, 1/2}) and bias (taken from
       ;; #{1, true}, which are supposed to mean the same.
