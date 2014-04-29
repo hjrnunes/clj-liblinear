@@ -36,14 +36,18 @@
                        (every? set? xs) (apply union xs))]
     (into {} (map vector dimnames (range 1 (inc (count dimnames)))))))
 
-(defn- bias-feature [bias dims] (FeatureNode. (inc (count dims)) bias))
+(defn- bias-feature [bias feature-index] (FeatureNode. feature-index bias))
 
 (defn- feature-array
   "Features are sorted by index. If bias is active, an extra feature is added."
   [bias dims instance]
-  (let [nodes (sort-by #(.index ^FeatureNode %) (feature-nodes instance dims))]
+  (let [nodes (sort-by #(.index ^FeatureNode %)
+                       (feature-nodes instance
+                                      dims))]
     (if (>= bias 0)
-      (into-array (concat nodes [(bias-feature bias dims)]))
+      (into-array (concat nodes
+                          [(bias-feature bias
+                                         (inc (count dims)))]))
       (into-array nodes))))
 
 (defn- correct-predictions
