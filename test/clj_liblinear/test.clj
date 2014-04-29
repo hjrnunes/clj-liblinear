@@ -118,18 +118,19 @@ The intercept is specified in feature name :intercept."
                :bias true)]
     ;; Check the model coefficients for various training scenations:
     (are [training-parameters expected-coefficients]
-      (almost-equal-maps (do
-                           ;; Reset liblinear's PRNG
-                           (reset-random)
-                           ;; Train model and get coefficients
-                           (get-coefficients (apply train
-                                                    (map :f train-data)
-                                                    (map :class train-data)
-                                                    training-parameters)))
-                         expected-coefficients)
+      (almost-equal-maps
+       (do
+         ;; Reset liblinear's PRNG
+         (reset-random)
+         ;; Train model and get coefficients
+         (get-coefficients (apply train
+                                  (map :f train-data)
+                                  (map :class train-data)
+                                  training-parameters)))
+         expected-coefficients)
       ;; Test various combinations of algorithm (taken from the supported
       ;; algotithms), c (taken from #{2, 1/2}) and bias (taken from
-      ;; #{1, true}, which are supposed to mean the same.
+      ;; #{1, true, -1}, which are supposed to mean the same.
       [:algorithm :l2lr_primal
        :c 2
        :bias true]
@@ -142,12 +143,24 @@ The intercept is specified in feature name :intercept."
       {:intercept 0.30896403558307006,
        :y 0.32897934116468414,
        :x -0.7493852105195001}
+      [:algorithm :l2l2
+       :c 1/2
+       :bias -1]
+      {:intercept -0.0,
+       :y 0.3071169929022199,
+       :x -0.6748243079870543}
       [:algorithm :l2l2_primal
        :c 2
        :bias 1]
       {:intercept 0.29480508710912584,
        :y 0.3137835397140601,
        :x -0.7111387065073224}
+      [:algorithm :l2l2_primal
+       :c 2
+       :bias -1]
+      {:intercept -0.0,
+       :y 0.30033425626017296,
+       :x -0.662693956280086}
       [:algorithm :l2l1
        :c 1/2
        :bias true]
@@ -166,12 +179,24 @@ The intercept is specified in feature name :intercept."
       {:intercept 0.2886149834553072,
        :y 0.308149642263233,
        :x -0.7236401689670875}
+      [:algorithm :l1l2_primal
+       :c 1/2
+       :bias -1]
+      {:intercept -0.0,
+       :y 0.300478785493661,
+       :x -0.6696216144029736}
       [:algorithm :l1lr
        :c 2
        :bias 1]
       {:intercept 0.7529187765874954,
        :y 0.8761760796248441,
        :x -1.9341912291944392}
+      [:algorithm :l1lr
+       :c 2
+       :bias -1]
+      {:intercept -0.0,
+       :y 0.8430193551171671,
+       :x -1.8029098028343824}
       [:algorithm :l2lr
        :c 1/2
        :bias true]
