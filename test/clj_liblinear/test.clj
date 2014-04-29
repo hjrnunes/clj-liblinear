@@ -124,7 +124,7 @@ The intercept is specified in feature name :intercept."
 (deftest regression-test-for-git-2266be6
   ;; Test various combinations of algorithm (taken from the supported
   ;; algotithms), c (taken from #{2, 1/2}) and bias (taken from
-  ;; #{1, true, -1}, which are supposed to mean the same.
+  ;; #{1, true, -1}.
   (regression-test-template [:algorithm :l2lr_primal
                              :c 2
                              :bias true]
@@ -193,5 +193,4 @@ The intercept is specified in feature name :intercept."
                             {:intercept 0.7905463338806276,
                              :y 0.8582570400126215,
                              :x -1.917358197930745}))
-
 
