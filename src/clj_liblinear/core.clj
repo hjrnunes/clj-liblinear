@@ -2,6 +2,7 @@
   (:refer-clojure :exclude [read-string])
   (:require [clojure.set :refer [union]]
             [clojure.edn :refer [read-string]]
+            clojure.core.matrix
             clojure.core.matrix.impl.dataset)
   (:import (de.bwaldvogel.liblinear FeatureNode
                                     Model
