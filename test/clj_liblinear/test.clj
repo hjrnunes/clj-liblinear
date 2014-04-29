@@ -145,8 +145,7 @@ The intercept is specified in feature name :intercept."
       [:algorithm :l2l2
        :c 1/2
        :bias -1]
-      {:intercept -0.0,
-       :y 0.3071169929022199,
+      {:y 0.3071169929022199,
        :x -0.6748243079870543}
       [:algorithm :l2l2_primal
        :c 2
@@ -157,8 +156,7 @@ The intercept is specified in feature name :intercept."
       [:algorithm :l2l2_primal
        :c 2
        :bias -1]
-      {:intercept -0.0,
-       :y 0.30033425626017296,
+      {:y 0.30033425626017296,
        :x -0.662693956280086}
       [:algorithm :l2l1
        :c 1/2
@@ -181,8 +179,7 @@ The intercept is specified in feature name :intercept."
       [:algorithm :l1l2_primal
        :c 1/2
        :bias -1]
-      {:intercept -0.0,
-       :y 0.300478785493661,
+      {:y 0.300478785493661,
        :x -0.6696216144029736}
       [:algorithm :l1lr
        :c 2
@@ -193,8 +190,7 @@ The intercept is specified in feature name :intercept."
       [:algorithm :l1lr
        :c 2
        :bias -1]
-      {:intercept -0.0,
-       :y 0.8430193551171671,
+      {:y 0.8430193551171671,
        :x -1.8029098028343824}
       [:algorithm :l2lr
        :c 1/2
