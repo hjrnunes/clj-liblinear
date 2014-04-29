@@ -13,6 +13,17 @@
 
 (set! *warn-on-reflection* true)
 
+
+(defprotocol FeaturesDataset
+  (construct-feature-rows [this] "Construct an array of arrays of Features (representing rows)."))
+
+(extend-protocol FeaturesDataset
+  clojure.lang.ISeq
+  (construct-feature-rows [this] nil)
+  clojure.core.matrix.impl.dataset.DataSet
+  (construct-feature-rows [this] nil))
+
+
 (defn feature-nodes [x dimensions]
   (cond
    (map? x) (for [[k v] x :when (contains? dimensions k)] (FeatureNode. (get dimensions k) v))
@@ -66,7 +77,7 @@
     (set! (.bias prob) bias)
     (set! (.l prob) (count xs))
     (set! (.n prob) (+ (count dimensions) (if (>= bias 0) 1 0)))
-
+    
     ;;Train and return the model
     {:target          (when cross-fold 
                         (let [target (make-array Double/TYPE (count ys))]
