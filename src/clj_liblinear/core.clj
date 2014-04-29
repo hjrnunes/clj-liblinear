@@ -1,7 +1,8 @@
 (ns clj-liblinear.core
   (:refer-clojure :exclude [read-string])
   (:require [clojure.set :refer [union]]
-            [clojure.edn :refer [read-string]])
+            [clojure.edn :refer [read-string]]
+            clojure.core.matrix.impl.dataset)
   (:import (de.bwaldvogel.liblinear FeatureNode
                                     Model
                                     Linear
