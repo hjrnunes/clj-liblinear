@@ -15,13 +15,13 @@
 
 
 (defprotocol FeaturesDataset
-  (construct-feature-rows [this] "Construct an array of arrays of Features (representing rows)."))
+  (construct-features-rows [this] "Construct an array of arrays of Features (representing rows)."))
 
 (extend-protocol FeaturesDataset
   clojure.lang.ISeq
-  (construct-feature-rows [this] nil)
+  (construct-features-rows [this] nil)
   clojure.core.matrix.impl.dataset.DataSet
-  (construct-feature-rows [this] nil))
+  (construct-features-rows [this] nil))
 
 
 (defn feature-nodes [x dimensions]
