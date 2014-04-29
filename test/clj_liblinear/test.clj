@@ -100,7 +100,7 @@ The intercept is specified in feature name :intercept."
   (is (almost-equal-maps {:intercept 0.7529187765874954, :y 0.8761760796248441, :x -1.9341912291944392}
                          {:intercept 0.7529187765874954, :y 0.8761760796248441, :x -1.9341912291944392})))
 
-(deftest regression-test
+(deftest regression-test-for-git-2266be6
   (let [ ;; Prepare training data
         train-data (generate-logistic-observations 400
                                                    {:x -2
@@ -178,4 +178,5 @@ The intercept is specified in feature name :intercept."
       {:intercept 0.7905463338806276,
        :y 0.8582570400126215,
        :x -1.917358197930745})))
+
 
