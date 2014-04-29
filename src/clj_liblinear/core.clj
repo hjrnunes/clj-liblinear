@@ -23,14 +23,14 @@
                        (every? set? xs) (apply union xs))]
     (into {} (map vector dimnames (range 1 (inc (count dimnames)))))))
 
-(defn- bias-feature [dims] (FeatureNode. (inc (count dims)) 1))
+(defn- bias-feature [bias dims] (FeatureNode. (inc (count dims)) bias))
 
 (defn- feature-array
   "Features are sorted by index. If bias is active, an extra feature is added."
   [bias dims instance]
   (let [nodes (sort-by #(.index ^FeatureNode %) (feature-nodes instance dims))]
-    (if (pos? bias)
-      (into-array (concat nodes [(bias-feature dims)]))
+    (if (>= bias 0)
+      (into-array (concat nodes [(bias-feature bias dims)]))
       (into-array nodes))))
 
 (defn- correct-predictions
@@ -51,7 +51,9 @@
                                 :l1lr SolverType/L1R_LR
                                 :l2lr SolverType/L2R_LR)
                     c eps)
-        bias       (if (or (true? bias) (pos? bias)) 1 0)
+        bias 	   (if (= Boolean (type bias))
+                     (if (true? bias) 1 -1)
+                     (if (>= bias 0) bias -1))
         dimensions (dimensions xs)
         xs         (into-array (map #(feature-array bias dimensions %) xs))
         ys         (into-array Double/TYPE ys)
@@ -61,7 +63,7 @@
     (set! (.y prob) ys)
     (set! (.bias prob) bias)
     (set! (.l prob) (count xs))
-    (set! (.n prob) (+ (count dimensions) bias))
+    (set! (.n prob) (+ (count dimensions) (if (>= bias 0) 1 0)))
 
     ;;Train and return the model
     {:target          (when cross-fold 
