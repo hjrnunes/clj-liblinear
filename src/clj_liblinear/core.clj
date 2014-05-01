@@ -14,13 +14,37 @@
 (set! *warn-on-reflection* true)
 
 (defprotocol FeatureRows
-  (construct-feature-nodes-arrays [this] "Construct an array of arrays of FeatureNode objects (representing rows).")
+  (construct-feature-nodes-arrays [this bias dimensions] "Construct an array of arrays of FeatureNode objects (representing rows).")
   (get-dimensions [this] "Get all of the dimensions as a map of dimension -> index."))
+
+(defprotocol FeatureRow
+  (construct-feature-nodes [this dimensions]
+    "Represent this as a sequence of FeatureNode objects."))
+
+(defn- construct-bias-feature [bias feature-index] (FeatureNode. feature-index bias))
+
+(defn construct-feature-nodes-array
+  "Given a FeatureRow, represent it as an array of FeatureNode objects,
+ordered by index (the order of dimensions) and including the bias if necessary.
+If bias is active, an extra feature is added."
+  [feature-row bias dimensions]
+  (let [ordered-nodes (sort-by #(.index ^FeatureNode %)
+                               (construct-feature-nodes feature-row
+                                                        dimensions))]
+    (if (>= bias 0)
+      (into-array (concat ordered-nodes
+                          [(construct-bias-feature bias
+                                                   (inc (count dimensions)))]))
+      (into-array ordered-nodes))) )
 
 (extend-protocol FeatureRows
   ;; a sequence of map/sets instances
   clojure.lang.ISeq
-  (construct-feature-nodes-arrays [iseq] nil)
+  (construct-feature-nodes-arrays [iseq bias dimensions]
+    (into-array (map #(construct-feature-nodes-array %
+                                                     bias
+                                                     dimensions)
+                     iseq)))
   (get-dimensions [iseq]
     (let [dimnames (cond (every? map? iseq) (into #{} (flatten (map keys iseq)))
                          (every? set? iseq) (apply union iseq))]
@@ -30,12 +54,8 @@
                            (inc (count dimnames)))))))
   ;; a core.matrix Dataset
   clojure.core.matrix.impl.dataset.DataSet
-  (construct-feature-nodes-arrays [this] nil)
+  (construct-feature-nodes-arrays [bias dimensions this] nil)
   (get-dimensions [this] nil))
-
-(defprotocol FeatureRow
-  (construct-feature-nodes [this dimensions]
-    "Represent this as a sequence of FeatureNode objects."))
 
 (extend-protocol FeatureRow
   ;; a map
@@ -51,21 +71,6 @@
           :when (dimensions v)]
       (FeatureNode. (get dimensions v) 1))))
 
-(defn- construct-bias-feature [bias feature-index] (FeatureNode. feature-index bias))
-
-(defn construct-feature-nodes-array
-  "Given a FeatureRow, represent it as an array of FeatureNode objects,
-ordered by index (the order of dimensions) and including the bias if necessary.
-If bias is active, an extra feature is added."
-  [bias dimensions feature-row]
-  (let [ordered-nodes (sort-by #(.index ^FeatureNode %)
-                               (construct-feature-nodes feature-row
-                                                        dimensions))]
-    (if (>= bias 0)
-      (into-array (concat ordered-nodes
-                          [(construct-bias-feature bias
-                                                   (inc (count dimensions)))]))
-      (into-array ordered-nodes))) )
 
 
 (defn- count-correct-predictions
@@ -90,8 +95,9 @@ If bias is active, an extra feature is added."
                      (if (true? bias) 1 -1)
                      (if (>= bias 0) bias -1))
         dimensions (get-dimensions xs)
-        feature-nodes-arrays (construct-feature-nodes-arrays xs)  
-        ;;(into-array (map #(feature-array bias dimensions %) xs))
+        feature-nodes-arrays (construct-feature-nodes-arrays xs
+                                                             bias
+                                                             dimensions)  
         ys         (into-array Double/TYPE ys)
         prob       (new Problem)]
 
