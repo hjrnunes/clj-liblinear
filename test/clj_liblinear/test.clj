@@ -106,6 +106,9 @@ The intercept is specified in feature name :intercept."
                                                  :intercept 1}
                                                 0))
 
+(def negated-train-data (map #(update-in % [:class] -)
+                             train-data))
+
 (defn regression-test-template [& test-cases]
   ;; Check the model coefficients for various training scenations:
   (eval (concat `(clojure.test/are [training-parameters expected-coefficients]
@@ -229,8 +232,54 @@ The intercept is specified in feature name :intercept."
     {:intercept 0.8126707014260155, :y 0.8625038218399448, :x -1.9281362351975666}]])
 
 
+(def all-regression-test-cases
+  (concat git-2266be6-test-cases
+          git-e5ac6ff-test-cases))
+
 
 (deftest regression-test
   (apply regression-test-template
-         (concat git-2266be6-test-cases
-                 git-e5ac6ff-test-cases)))
+         all-regression-test-cases))
+
+
+
+(comment
+  ;; See what happens when labels are negated
+  (clj-liblinear.core/reset-random)
+  (clojure.pprint/pprint
+   (let [reports
+         (for [[training-parameters expected-coefficients] all-regression-test-cases]
+           (let [expected-neg-coefficients (into {}
+                                                 (for [[k v] expected-coefficients]
+                                                   {k (- v)}))
+                 actual-neg-coefficients (clj-liblinear.core/get-coefficients (apply clj-liblinear.core/train
+                                                                                     (map :f negated-train-data)
+                                                                                     (map :class negated-train-data)
+                                                                                     training-parameters))
+                 _ (assert (= (keys expected-neg-coefficients)
+                              (keys actual-neg-coefficients)))
+                 report {:training-parameters training-parameters
+                         :almost-equal (almost-equal-maps expected-neg-coefficients
+                                                          actual-neg-coefficients)
+                         :relative-differences (into {}
+                                                     (for [k (keys expected-neg-coefficients)]
+                                                       {k (/ (- (actual-neg-coefficients k)
+                                                                (expected-neg-coefficients k))
+                                                             (expected-neg-coefficients k))}))}]
+             report)
+           )]     
+     {:reports reports
+      :max-abs-relative-error (apply max
+                                     (map #(Math/abs %)
+                                          (flatten
+                                           (map (comp vals :relative-differences)
+                                                reports))))}))
+  ;; It turns out that the liblinear library is not completely symmetric:
+  ;; When training a model with the same parameters and same seed, at
+  ;; the same training data with negated labels, we get coefficients
+  ;; which are only approximately the negations of the original
+  ;; coefficients (absolute relative differences can reach 0.1, but
+  ;; are usually less than 0.01 or even much smaller).
+  ;; The direction of change is not consistent (at least with the toy
+  ;; data used in this check).
+  )
