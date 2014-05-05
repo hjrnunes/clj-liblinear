@@ -245,13 +245,13 @@ The intercept is specified in feature name :intercept."
 
 (comment
   ;; See what happens when labels are negated
-  (clj-liblinear.core/reset-random)
   (clojure.pprint/pprint
    (let [reports
          (for [[training-parameters expected-coefficients] all-regression-test-cases]
            (let [expected-neg-coefficients (into {}
                                                  (for [[k v] expected-coefficients]
                                                    {k (- v)}))
+                 _ (clj-liblinear.core/reset-random)
                  actual-neg-coefficients (clj-liblinear.core/get-coefficients (apply clj-liblinear.core/train
                                                                                      (map :f negated-train-data)
                                                                                      (map :class negated-train-data)
@@ -274,11 +274,12 @@ The intercept is specified in feature name :intercept."
                                           (flatten
                                            (map (comp vals :relative-differences)
                                                 reports))))}))
-  ;; It turns out that the liblinear library is not completely symmetric:
+  ;; It turns out that the liblinear library is not completely
+  ;; symmetric (at least with some of the models):
   ;; When training a model with the same parameters and same seed, at
   ;; the same training data with negated labels, we get coefficients
   ;; which are only approximately the negations of the original
-  ;; coefficients (absolute relative differences can reach 0.1, but
+  ;; coefficients (absolute relative differences can reach 0.07680557501022828, but
   ;; are usually less than 0.01 or even much smaller).
   ;; The direction of change is not consistent (at least with the toy
   ;; data used in this check).
