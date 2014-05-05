@@ -1,4 +1,12 @@
-                                         _ __  
+
+This is a fork of lynaghk's clj-liblinear, with some minor changes:
+1. support for liblinear-java's bias parameter
+2. regression tests (currently managed somewhat problematically)
+3. (soon:) support for other input formats (striving to be more
+memory-efficient in case of nonsparse large datasets).
+
+
+_ __  
                                         | '_ \ 
                                         | | | |
       /                             \   |_| |_| 
