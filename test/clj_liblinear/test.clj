@@ -6,10 +6,10 @@
 
 (comment
   (let [train-data (concat
-                    (repeatedly 300 #(hash-map :class 0 :f {:x (rand), :y (rand)}))
-                    (repeatedly 300 #(hash-map :class 1 :f {:x (- (rand)), :y (- (rand))})))
+                    (repeatedly 300 #(hash-map :class 0 :features {:x (rand), :y (rand)}))
+                    (repeatedly 300 #(hash-map :class 1 :features {:x (- (rand)), :y (- (rand))})))
         model (train
-               (map :f train-data)
+               (map :features train-data)
                (map :class train-data)
                :algorithm :l2l2)]
            
@@ -52,7 +52,7 @@ The intercept is specified in feature name :intercept."
                                                  feature-value)))))
                         observed-class (Math/signum (- prob
                                                        (rand-uniform)))]
-                    {:f features
+                    {:features features
                      :class observed-class})))))
 
 
@@ -117,7 +117,7 @@ The intercept is specified in feature name :intercept."
                                         (clj-liblinear.core/reset-random)
                                         ;; Train model and get coefficients
                                         (clj-liblinear.core/get-coefficients (apply clj-liblinear.core/train
-                                                                                    (map :f train-data)
+                                                                                    (map :features train-data)
                                                                                     (map :class train-data)
                                                                                     training-parameters)))
                                       expected-coefficients))
@@ -253,7 +253,7 @@ The intercept is specified in feature name :intercept."
                                                    {k (- v)}))
                  _ (clj-liblinear.core/reset-random)
                  actual-neg-coefficients (clj-liblinear.core/get-coefficients (apply clj-liblinear.core/train
-                                                                                     (map :f negated-train-data)
+                                                                                     (map :features negated-train-data)
                                                                                      (map :class negated-train-data)
                                                                                      training-parameters))
                  _ (assert (= (keys expected-neg-coefficients)
