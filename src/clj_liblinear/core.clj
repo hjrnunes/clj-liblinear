@@ -78,10 +78,13 @@ If bias is active, an extra feature is added."
       (indexed-values dimnames)))
   ;; a core.matrix Dataset
   clojure.core.matrix.impl.dataset.DataSet
-  (construct-feature-nodes-arrays [bias dimensions this]
-    nil)
-  (get-dimensions [this]
-    nil))
+  (construct-feature-nodes-arrays [dat bias dimensions]
+    (into-array (for [i (d/row-count dat)]
+                  (construct-feature-nodes-array (d/row dat i)
+                                                 bias
+                                                 dimensions))))
+  (get-dimensions [dat]
+    (indexed-values (:column-names dat))))
 
 (extend-protocol FeatureRow
   ;; a map
@@ -90,16 +93,26 @@ If bias is active, an extra feature is added."
     (for [[k v] this
           :let [k-idx (get (:index dimensions) k)]
           :when k-idx]
-      (FeatureNode. k-idx v)))
+      (FeatureNode. k-idx
+                    v)))
   ;; a set
   clojure.lang.IPersistentSet
   (construct-feature-nodes [this dimensions]
     (for [v this
           :let [v-idx (get (:index dimensions) v)]
           :when v-idx]
-      (FeatureNode. v-idx 1))))
+      (FeatureNode. v-idx
+                    1))))
 
-
+(extend-protocol FeatureRow
+  ;; a primitive array of doubles
+  ;; http://stackoverflow.com/a/13925248
+  (Class/forName "[D")
+  (construct-feature-nodes [this dimensions]
+    (for [idx (count this)]
+      (FeatureNode. idx
+                    (aget ^doubles this
+                          ^int idx)))))
 
 (defn- count-correct-predictions
   [target labels]
