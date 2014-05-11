@@ -2,8 +2,8 @@
 This is a fork of lynaghk's clj-liblinear, with some minor changes:
 1. support for liblinear-java's bias parameter
 2. regression tests (currently managed somewhat problematically)
-3. (soon:) support for other input formats (striving to be more
-memory-efficient in case of nonsparse large datasets).
+3. support for an additional input format (more memory-efficient in
+   case of nonsparse large datasets): clojure.core.matrix.impl.dataset
 
 Notes:
 1. Currently the regression tests fail for the algorithm of type
