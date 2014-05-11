@@ -3,19 +3,46 @@
   (:require [clojure.set :refer [union]]
             [clojure.edn :refer [read-string]]
             clojure.core.matrix
-            clojure.core.matrix.impl.dataset)
+            [clojure.core.matrix.impl.dataset :as d])
   (:import (de.bwaldvogel.liblinear FeatureNode
                                     Model
                                     Linear
                                     Problem
                                     Parameter
-                                    SolverType)))
+                                    SolverType)
+           (clojure.lang IPersistentVector
+                         IPersistentMap)))
 
 (set! *warn-on-reflection* true)
 
+
+(defrecord IndexedValues
+    ;; "a sequence of values, together with an index -- a map from each value to its ordinal number"
+    [^IPersistentVector values
+     ^IPersistentMap index])
+
+(defn indexed-values
+  ([values index]
+     (IndexedValues. values
+                     index))
+  ([values]
+     (indexed-values values
+                     (into {} (map vector
+                                   values
+                                   (range 1
+                                          (inc (count values))))))))
+
+(defn add [^IndexedValues ivs
+           new-val]
+  (IndexedValues. (conj (:values ivs)
+                        new-val)
+                  (assoc (:index ivs)
+                    new-val (inc (count (:values ivs))))))
+
+
 (defprotocol FeatureRows
   (construct-feature-nodes-arrays [this bias dimensions] "Construct an array of arrays of FeatureNode objects (representing rows).")
-  (get-dimensions [this] "Get all of the dimensions as a map of dimension -> index."))
+  (get-dimensions [this] "Get all of the dimensions, indexed."))
 
 (defprotocol FeatureRow
   (construct-feature-nodes [this dimensions]
@@ -48,28 +75,29 @@ If bias is active, an extra feature is added."
   (get-dimensions [iseq]
     (let [dimnames (cond (every? map? iseq) (into #{} (flatten (map keys iseq)))
                          (every? set? iseq) (apply union iseq))]
-      (into {} (map vector
-                    dimnames
-                    (range 1
-                           (inc (count dimnames)))))))
+      (indexed-values dimnames)))
   ;; a core.matrix Dataset
   clojure.core.matrix.impl.dataset.DataSet
-  (construct-feature-nodes-arrays [bias dimensions this] nil)
-  (get-dimensions [this] nil))
+  (construct-feature-nodes-arrays [bias dimensions this]
+    nil)
+  (get-dimensions [this]
+    nil))
 
 (extend-protocol FeatureRow
   ;; a map
   clojure.lang.IPersistentMap
   (construct-feature-nodes [this dimensions]
     (for [[k v] this
-          :when (contains? dimensions k)]
-      (FeatureNode. (get dimensions k) v)))
+          :let [k-idx (get (:index dimensions) k)]
+          :when k-idx]
+      (FeatureNode. k-idx v)))
   ;; a set
   clojure.lang.IPersistentSet
   (construct-feature-nodes [this dimensions]
     (for [v this
-          :when (dimensions v)]
-      (FeatureNode. (get dimensions v) 1))))
+          :let [v-idx (get (:index dimensions) v)]
+          :when v-idx]
+      (FeatureNode. v-idx 1))))
 
 
 
@@ -153,11 +181,11 @@ The intercept corresponds to the key :intercept."
                                 vec)
         ;; Get the indices (in the above ordering) corresponding to
         ;; the various feature names.
-        feature-indices (if include-bias
-                          (assoc (:dimensions model)
-                            ;; The bias feature is always the last one.
-                            :bias (count coefficients-vector))
-                          (:dimensions model))
+        feature-indices (:index
+                         (if include-bias
+                           (add (:dimensions model)
+                                :bias)
+                           (:dimensions model)))
         ;; Create a hashmap containing the coefficients by name.
         feature-coefficients (into {}
                                    (for [[feature-name feature-index] feature-indices

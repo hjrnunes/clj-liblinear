@@ -1,5 +1,5 @@
 (ns clj-liblinear.test
-  (:use [clj-liblinear.core :only [train predict get-coefficients reset-random]]
+  (:use clj-liblinear.core
         clojure.test)
   (:import java.util.Random))
 
@@ -284,3 +284,10 @@ The intercept is specified in feature name :intercept."
   ;; The direction of change is not consistent (at least with the toy
   ;; data used in this check).
   )
+
+
+(deftest indexed-values-test
+  (is (= (add (indexed-values [:c :a :b])
+              :x)
+         (indexed-values [:c :a :b :x],
+                         {:c 1, :a 2, :b 3 :x 4}))))
