@@ -1,6 +1,7 @@
 (ns clj-liblinear.test
   (:use clj-liblinear.core
         clojure.test)
+  (:require [clojure.core.matrix.impl.dataset :as d])
   (:import java.util.Random))
 
 
@@ -108,6 +109,7 @@ The intercept is specified in feature name :intercept."
 
 (def negated-train-data (map #(update-in % [:class] -)
                              train-data))
+
 
 (defn regression-test-template [& test-cases]
   ;; Check the model coefficients for various training scenations:
@@ -291,3 +293,23 @@ The intercept is specified in feature name :intercept."
               :x)
          (indexed-values [:c :a :b :x],
                          {:c 1, :a 2, :b 3 :x 4}))))
+
+
+(deftest dataset-test
+  (let [distinct-feature-names (distinct (map (comp keys :features)
+                                              train-data))
+        _ (assert (= 1 (count distinct-feature-names)))
+        feature-names (first distinct-feature-names)
+        dat (d/dataset feature-names
+                       (for [feature-name feature-names]
+                         (map (comp feature-name :features)
+                              train-data)))]
+    (for [training-parameters (map first all-regression-test-cases)]
+      (is (apply almost-equal-maps
+                 (for [xs [(map :features train-data)
+                           dat]]
+                   (get-coefficients (do (reset-random)
+                                         (apply clj-liblinear.core/train
+                                                xs
+                                                (map :class train-data)
+                                                training-parameters)))))))))
