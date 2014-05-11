@@ -5,6 +5,11 @@ This is a fork of lynaghk's clj-liblinear, with some minor changes:
 3. (soon:) support for other input formats (striving to be more
 memory-efficient in case of nonsparse large datasets).
 
+Notes:
+1. Currently the regression tests fail for the algorithm of type
+   :multi. This means that the functionality of this case changed with
+   the last changes (the insertion of the IndexedValues type), and possibly
+   a bug was inserted. There is no explanation yet.
 
 _ __  
                                         | '_ \ 
