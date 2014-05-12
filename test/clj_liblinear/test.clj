@@ -313,3 +313,35 @@ The intercept is specified in feature name :intercept."
                                                 xs
                                                 (map :class train-data)
                                                 training-parameters)))))))))
+
+
+(comment
+ ;; some performance tests
+  (let [num-rows 100000
+        num-columns 150
+        large-train-data (generate-logistic-observations
+                          num-rows
+                          (apply hash-map
+                                 (interleave (cons :intercept
+                                                   (map (comp keyword str)
+                                                        (range num-columns)))
+                                             (repeatedly (inc num-columns)
+                                                         rand)))
+                          0)
+        feature-names (first (map (comp keys :features)
+                                 large-train-data))
+        dat (d/dataset feature-names
+                      (for [feature-name feature-names]
+                        (map (comp feature-name :features)
+                             large-train-data)))
+        training-parameters [:algorithm :l1lr :c 2 :bias 1/2]
+        ys (map :class large-train-data)]
+    (apply almost-equal-maps
+           (for [xs [(map :features large-train-data)
+                     dat]]
+             (time (println (get-coefficients (do (reset-random)
+                                                  (apply clj-liblinear.core/train
+                                                         xs
+                                                         ys
+                                                         training-parameters)))))))))
+
