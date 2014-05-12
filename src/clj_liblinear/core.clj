@@ -61,8 +61,8 @@ If bias is active, an extra feature is added."
     (if (>= bias 0)
       (into-array (concat ordered-nodes
                           [(construct-bias-feature bias
-                                                   (inc (count dimensions)))]))
-      (into-array ordered-nodes))) )
+                                                   (inc (count (:values dimensions))))]))
+      (into-array ordered-nodes))))
 
 (extend-protocol FeatureRows
   ;; a sequence of map/sets instances
@@ -146,7 +146,7 @@ If bias is active, an extra feature is added."
     (set! (.y prob) ys)
     (set! (.bias prob) bias)
     (set! (.l prob) (count feature-nodes-arrays))
-    (set! (.n prob) (+ (count dimensions) (if (>= bias 0) 1 0)))
+    (set! (.n prob) (+ (count (:index dimensions)) (if (>= bias 0) 1 0)))
     
     ;;Train and return the model
     {:target          (when cross-fold 
