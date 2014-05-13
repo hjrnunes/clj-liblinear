@@ -317,11 +317,10 @@ The intercept is specified in feature name :intercept."
 
 
 (defn check-performance
-  "Some performance test, not invoked as part of the unit tests."
-  []
-  (let [num-rows 20000
-        num-columns 150
-        large-train-data (generate-logistic-observations
+  "Some performance test, not invoked as part of the unit tests.
+Try, for example, (check-performance 20000 150), for 20000 training examples of 150 features."
+  [num-rows num-columns]
+  (let [large-train-data (generate-logistic-observations
                           num-rows
                           (apply hash-map
                                  (interleave (cons :intercept
