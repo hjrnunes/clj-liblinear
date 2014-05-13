@@ -1,7 +1,8 @@
 (ns clj-liblinear.test
   (:use clj-liblinear.core
         clojure.test)
-  (:require [clojure.core.matrix.impl.dataset :as d])
+  (:require [clojure.core.matrix.impl.dataset :as d]
+            [clatrix.core :as clx])
   (:import java.util.Random))
 
 
@@ -317,7 +318,7 @@ The intercept is specified in feature name :intercept."
 
 (comment
  ;; some performance tests
-  (let [num-rows 100000
+  (let [num-rows 5000
         num-columns 150
         large-train-data (generate-logistic-observations
                           num-rows
