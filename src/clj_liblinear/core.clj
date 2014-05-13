@@ -2,8 +2,9 @@
   (:refer-clojure :exclude [read-string])
   (:require [clojure.set :refer [union]]
             [clojure.edn :refer [read-string]]
-            clojure.core.matrix
-            [clojure.core.matrix.impl.dataset :as d])
+            [clojure.core.matrix :as m]
+            [clojure.core.matrix.impl.dataset :as d]
+            [clatrix.core :as clx])
   (:import (de.bwaldvogel.liblinear FeatureNode
                                     Model
                                     Linear
@@ -79,10 +80,11 @@ If bias is active, an extra feature is added."
   ;; a core.matrix Dataset
   clojure.core.matrix.impl.dataset.DataSet
   (construct-feature-nodes-arrays [dat bias dimensions]
-    (into-array (for [i (range (d/row-count dat))]
-                  (construct-feature-nodes-array (double-array (d/row dat i))
-                                                 bias
-                                                 dimensions))))
+    (let [transposed-mat (clx/matrix (:columns dat))]
+      (into-array (map #(construct-feature-nodes-array (double-array %)
+                                                       bias
+                                                       dimensions)
+                       (m/columns transposed-mat)))))
   (get-dimensions [dat]
     (indexed-values (set (:column-names dat)))))
 
