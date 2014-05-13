@@ -316,9 +316,10 @@ The intercept is specified in feature name :intercept."
                                                 training-parameters)))))))))
 
 
-(comment
- ;; some performance tests
-  (let [num-rows 5000
+(defn check-performance
+  "Some performance test, not invoked as part of the unit tests."
+  []
+  (let [num-rows 20000
         num-columns 150
         large-train-data (generate-logistic-observations
                           num-rows
@@ -332,9 +333,9 @@ The intercept is specified in feature name :intercept."
         feature-names (first (map (comp keys :features)
                                  large-train-data))
         dat (d/dataset feature-names
-                      (for [feature-name feature-names]
-                        (map (comp feature-name :features)
-                             large-train-data)))
+                       (for [feature-name feature-names]
+                         (double-array (map (comp feature-name :features)
+                                            large-train-data))))
         training-parameters [:algorithm :l1lr :c 2 :bias 1/2]
         ys (map :class large-train-data)]
     (apply almost-equal-maps
