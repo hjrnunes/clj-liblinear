@@ -338,7 +338,10 @@ The intercept is specified in feature name :intercept."
         training-parameters [:algorithm :l1lr :c 2 :bias 1/2]
         ys (map :class large-train-data)]
     (apply almost-equal-maps
-           (for [xs [(map :features large-train-data)
+           ;; try the different ways to represent xs
+           (for [xs [;; a sequence of maps, representing rows
+                     (map :features large-train-data)
+                     ;; a dataset of core.matrix
                      dat]]
              (time (println (get-coefficients (do (reset-random)
                                                   (apply clj-liblinear.core/train
