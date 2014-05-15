@@ -349,3 +349,12 @@ Try, for example, (check-performance 20000 150), for 20000 training examples of 
                                                          ys
                                                          training-parameters)))))))))
 
+
+
+(deftest io-test
+  (let [model (train (map :features train-data)
+                     (map :class train-data))
+        temp-base-filename "/tmp/model.tmp"]
+    (save-model model temp-base-filename)
+    (is (almost-equal-maps (get-coefficients model)
+                           (get-coefficients (load-model temp-base-filename))))))

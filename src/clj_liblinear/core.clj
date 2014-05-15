@@ -171,13 +171,18 @@ If bias is active, an extra feature is added."
   [model base-file-name]
   (with-open [out-file (clojure.java.io/writer (str base-file-name ".bin"))]
     (Linear/saveModel out-file ^Model (:liblinear-model model)))
-  (spit  (str base-file-name ".edn") (:dimensions model)))
+  (let [dimensions (:dimensions model)]
+    (spit (str base-file-name ".edn")
+          {:values (:values dimensions)
+           :index (:index dimensions)})))
 
 (defn load-model
   "Reads a useable model from a pair of files specified by base-file-name. A file with the .bin extension should contain the serialized java model and the .edn file should contain the serialized (edn) clojure dimensions data."
   [base-file-name]
   (let [mdl (Linear/loadModel (clojure.java.io/reader (str base-file-name ".bin")))
-        dimensions (read-string (slurp (str base-file-name ".edn")))]
+        dimensions-map (read-string (slurp (str base-file-name ".edn")))
+        dimensions (indexed-values (:values dimensions-map)
+                                   (:index dimensions-map))]
     {:liblinear-model mdl :dimensions dimensions}))
 
 (defn get-coefficients
