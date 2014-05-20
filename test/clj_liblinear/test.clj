@@ -358,3 +358,22 @@ Try, for example, (check-performance 20000 150), for 20000 training examples of 
     (save-model model temp-base-filename)
     (is (almost-equal-maps (get-coefficients model)
                            (get-coefficients (load-model temp-base-filename))))))
+
+
+
+(deftest nan-test
+  (let [train-data-with-nans (cons {:features (:features (first train-data))
+                                    :class Double/NaN}
+                                   train-data)
+        _ (reset-random)
+        usual-coefficients (get-coefficients (train (map :features train-data)
+                                                    (map :class train-data)))]
+    (reset-random)
+    (is (almost-equal-maps usual-coefficients
+                           (get-coefficients (train (map :features train-data-with-nans)
+                                                    (map :class train-data-with-nans)))))
+    (reset-random)
+    (is (not (almost-equal-maps usual-coefficients
+                                (get-coefficients (train (map :features train-data-with-nans)
+                                                         (map :class train-data-with-nans)
+                                                         :keep-nan-ys true)))))))

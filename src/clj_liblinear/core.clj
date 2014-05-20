@@ -122,8 +122,8 @@ If bias is active, an extra feature is added."
 
 (defn train
   "Train a LIBLINEAR model on a collection of maps or sets, xs, and a collection of their integer classes, ys."
-  [xs ys & {:keys [c eps algorithm bias cross-fold]
-            :or {c 1, eps 0.1, algorithm :l2l2, bias -1, cross-fold nil}}]
+  [xs ys & {:keys [c eps algorithm bias cross-fold keep-nan-ys]
+            :or {c 1, eps 0.1, algorithm :l2l2, bias -1, cross-fold nil, keep-nan-ys false}}]
   (let [params (new Parameter (condp = algorithm
                                 :l2lr_primal SolverType/L2R_LR
                                 :l2l2 SolverType/L2R_L2LOSS_SVC_DUAL
@@ -138,10 +138,20 @@ If bias is active, an extra feature is added."
                      (if (true? bias) 1 -1)
                      (if (>= bias 0) bias -1))
         dimensions (get-dimensions xs)
-        xs (construct-feature-nodes-arrays xs
-                                           bias
-                                           dimensions)  
-        ys         (into-array Double/TYPE ys)
+        xs         (construct-feature-nodes-arrays xs
+                                                   bias
+                                                   dimensions)  
+        ys         (double-array ys)
+        ;; handling the case of nan ys (interpreted as multiple
+        ;; classes if kept)
+        [xs ys]    (if keep-nan-ys
+                     [xs ys]
+                     ;; else -- remove cases where y is nan
+                     (->> (map vector xs ys)
+                          (filter #(not (Double/isNaN (second %))))
+                          ((fn [xys]
+                              [(into-array (map first xys))
+                               (double-array (map second xys))]))))
         prob       (new Problem)]
 
     (set! (.x prob) xs)
