@@ -138,16 +138,16 @@ If bias is active, an extra feature is added."
                      (if (true? bias) 1 -1)
                      (if (>= bias 0) bias -1))
         dimensions (get-dimensions xs)
-        feature-nodes-arrays (construct-feature-nodes-arrays xs
-                                                             bias
-                                                             dimensions)  
+        xs (construct-feature-nodes-arrays xs
+                                           bias
+                                           dimensions)  
         ys         (into-array Double/TYPE ys)
         prob       (new Problem)]
 
-    (set! (.x prob) feature-nodes-arrays)
+    (set! (.x prob) xs)
     (set! (.y prob) ys)
     (set! (.bias prob) bias)
-    (set! (.l prob) (count feature-nodes-arrays))
+    (set! (.l prob) (count xs))
     (set! (.n prob) (+ (count (:index dimensions)) (if (>= bias 0) 1 0)))
     
     ;;Train and return the model
