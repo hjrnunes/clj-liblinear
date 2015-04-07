@@ -6,3 +6,8 @@ lib
 classes
 build
 /clj-liblinear
+
+*.iml
+pom.xml.asc
+.idea
+target

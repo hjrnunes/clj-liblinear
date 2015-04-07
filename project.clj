@@ -1,6 +1,14 @@
-(defproject daslu/clj-liblinear "0.1.4"
-  :description "A Clojure wrapper for LIBLINEAR, a linear support vector machine library."
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [de.bwaldvogel/liblinear "1.94"]
-                 [net.mikera/core.matrix "0.23.0"]
-                 [clatrix "0.3.0"]])
+(defproject hjrnunes/clj-liblinear "0.1.4"
+            :description "A Clojure wrapper for LIBLINEAR, a linear support vector machine library."
+            :url "https://github.com/daslu/clj-liblinear"
+            :license {:name "Eclipse Public License - v 1.0"
+                      :url  "https://www.eclipse.org/legal/epl-v10.html"}
+            :scm {:name "git"
+                  :url  "https://github.com/daslu/clj-liblinear"}
+            :signing {:gpg-key "8896C73B"}
+            :deploy-repositories [["clojars" {:creds :gpg}]]
+
+            :dependencies [[org.clojure/clojure "1.5.1"]
+                           [de.bwaldvogel/liblinear "1.94"]
+                           [net.mikera/core.matrix "0.23.0"]
+                           [clatrix "0.3.0"]])
