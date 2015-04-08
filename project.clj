@@ -1,4 +1,4 @@
-(defproject hjrnunes/clj-liblinear "0.1.5"
+(defproject hjrnunes/clj-liblinear "0.1.5-SNAPSHOT"
             :description "A Clojure wrapper for LIBLINEAR, a linear support vector machine library."
             :url "https://github.com/hjrnunes/clj-liblinear"
             :license {:name "Eclipse Public License - v 1.0"
