@@ -11,3 +11,4 @@ build
 pom.xml.asc
 .idea
 target
+.lein-failures
